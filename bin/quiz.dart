@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
-void main() {
+void main() async {
   List<String> notes = <String>[];
 
   void menu() {
+    showHeader();
+
     String command = getCommand();
 
     switch (command) {
@@ -19,10 +22,11 @@ void main() {
       break;
     }
   }
+  notes = await readFile();
 
   menu();
 
-
+  await writeFile(notes);
   print("Volte sempre!!");
 
 }
@@ -51,11 +55,54 @@ void showNotes(List<String> notes) {
   }
 }
 
+Future<void> writeFile(List<String> notes) async {
+  final filename = "notes.txt";
+  String line = "";
+  for (var element in notes) {
+    line = "$line$element\n";
+  }
+  await File(filename).writeAsString(line);
+}
+
+Future<List<String>> readFile() async {
+  final filename = "notes.txt";
+  List<String> notes = <String>[];
+  Stream<String> content = File(filename).openRead().transform(utf8.decoder).transform(LineSplitter());
+  try {
+    await for (String line in content) {
+      notes.add(line);
+    }
+  } catch (e) {
+    print("Error: $e");
+  }
+  return notes;
+}
+
+void showHeader() {
+  // https://patorjk.com/software/taag/#p=display&c=echo&f=Bloody&t=Notes
+
+  print("");
+  print("");
+  print(" ███▄    █  ▒█████  ▄▄▄█████▓▓█████   ██████ ");
+  print(" ██ ▀█   █ ▒██▒  ██▒▓  ██▒ ▓▒▓█   ▀ ▒██    ▒ ");
+  print("▓██  ▀█ ██▒▒██░  ██▒▒ ▓██░ ▒░▒███   ░ ▓██▄   ");
+  print("▓██▒  ▐▌██▒▒██   ██░░ ▓██▓ ░ ▒▓█  ▄   ▒   ██▒");
+  print("▒██░   ▓██░░ ████▓▒░  ▒██▒ ░ ░▒████▒▒██████▒▒");
+  print("░ ▒░   ▒ ▒ ░ ▒░▒░▒░   ▒ ░░   ░░ ▒░ ░▒ ▒▓▒ ▒ ░");
+  print("░ ░░   ░ ▒░  ░ ▒ ▒░     ░     ░ ░  ░░ ░▒  ░ ░");
+  print("   ░   ░ ░ ░ ░ ░ ▒    ░         ░   ░  ░  ░  ");
+  print("         ░     ░ ░              ░  ░      ░  ");
+  print("");
+  print("");
+}
+
 List<String> addNote(List<String> notes) {
   List<String> commands = <String>["y", "n"];
 
   print("Escreva sua nota");
+  print("");
   String? note = stdin.readLineSync();
+  print("");
   if (note == null || note.isEmpty) {
     print("Não é possível adicionar uma nota vazia");
   }
@@ -63,6 +110,9 @@ List<String> addNote(List<String> notes) {
   notes.add(note!);
 
   print("Deseja adicionar outra nota?");
+  print("");
+  print("y - Sim, n - Não");
+  print("");
   String? command = stdin.readLineSync();
 
   if (commands.contains(command)) {
